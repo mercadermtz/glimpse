@@ -48,8 +48,7 @@ All agents should read these files **in this order:**
 
 ### Step 2: Check Status & Blockers
 - Read: `.claude/progress.md` - Current progress
-- Read: `.claude/blockers.md` - Any blockers (if exists)
-- Read: `.claude/decisions.md` - Architecture decisions
+- Check: `.claude/tasks.md` - Task status and blockers
 
 ### Step 3: Start Working
 - Pick a task from `.claude/tasks.md`
@@ -61,47 +60,46 @@ All agents should read these files **in this order:**
 ## 📁 Repository Structure
 
 ```
-Glimpse_Repo/
-├── claude.md                          ← 🎯 MAIN ENTRY POINT
+glimpse/
+├── claude.md                          ← 🎯 MAIN ENTRY POINT (Agent orchestration guide)
+├── GLIMPSE_BRANDING.md                (Project branding guidelines)
+├── .gitignore                         (Git ignore rules)
 │
 ├── .claude/                           ← Project Configuration
-│   ├── context.md                     (Project specs & architecture)
-│   ├── standards.md                   (Code/doc standards)
-│   ├── tasks.md                       (Task queue)
-│   ├── progress.md                    (Weekly progress)
-│   ├── blockers.md                    (Current blockers)
-│   ├── decisions.md                   (Architecture decisions)
-│   └── architecture.md                (System design)
+│   ├── context.md                     ✅ Project specs & architecture
+│   ├── standards.md                   ✅ Code/doc standards
+│   ├── tasks.md                       ✅ Task queue & assignments
+│   └── progress.md                    ✅ Weekly progress tracking
 │
 ├── agents/                            ← Agent Role Definitions
-│   ├── ios-swift-developer.md         (iOS core logic)
-│   ├── ios-swiftui-designer.md        (iOS UI/UX)
-│   ├── backend-python-developer.md    (Firebase/Python)
-│   └── devops-engineer.md             (Deployment/CI-CD)
+│   ├── ios-swift-developer.md         ✅ iOS core logic
+│   ├── ios-swiftui-designer.md        ✅ iOS UI/UX
+│   ├── backend-python-developer.md    ✅ Firebase/Python backend
+│   └── devops-engineer.md             ✅ DevOps/Deployment
 │
-├── docs/                              ← Technical Documentation (EMPTY - TO FILL)
-│   ├── architecture.md                (System design details)
-│   ├── api-specification.md           (Backend API)
-│   ├── ios-requirements.md            (iOS specs)
-│   └── deployment-guide.md            (How to deploy)
+├── docs/                              ← Technical Documentation
+│   ├── ARCHITECTURE.md                ✅ System design & diagrams
+│   ├── iOS_DEVELOPMENT.md             ✅ iOS development guide
+│   ├── BACKEND_DEVELOPMENT.md         ✅ Backend development guide
+│   └── (api-specification, deployment-guide - TBD)
 │
-├── skills/                            ← Domain Skills & Patterns (EMPTY - TO FILL)
-│   ├── ios-development.md
-│   ├── backend-development.md
-│   ├── firebase-deployment.md
-│   └── testing-verification.md
+├── skills/                            ← Domain Skills & Patterns
+│   ├── iOS_DEVELOPMENT.md             ✅ iOS patterns & best practices
+│   └── (backend-development, firebase-deployment - TBD)
 │
-├── rules/                             ← Project Rules (EMPTY - TO FILL)
-│   ├── code-standards.md
-│   ├── documentation-standards.md
-│   ├── git-workflow.md
-│   └── communication-protocol.md
+├── rules/                             ← Project Rules
+│   ├── CODE_STANDARDS.md              ✅ Swift & Python standards
+│   └── (git-workflow, communication-protocol - TBD)
 │
-├── .github/                           ← GitHub Config (EMPTY - TO FILL)
+├── .github/                           ← GitHub Configuration
 │   └── workflows/
-│       └── deploy.yml                 (CI/CD pipeline)
+│       └── ci-cd.yml                  ✅ CI/CD pipeline
 │
-└── README.md                          (THIS FILE)
+├── setup-ios.sh                       (iOS environment setup)
+├── setup-backend.sh                   (Backend environment setup)
+├── README.md                          (THIS FILE)
+│
+└── .git/                              (Git repository)
 ```
 
 ---
@@ -220,13 +218,13 @@ Glimpse_Repo/
 - Code standards? → Read `.claude/standards.md`
 - System architecture? → Read `.claude/context.md`
 - Current tasks? → Read `.claude/tasks.md`
-- Any blockers? → Check `.claude/blockers.md`
+- Project branding? → Check `GLIMPSE_BRANDING.md`
 
 ### Blockers?
-1. Add to `.claude/blockers.md`
-2. Notify team
-3. Wait for next sync point
-4. Decision recorded in `.claude/decisions.md`
+1. Note in `.claude/tasks.md` (mark task status)
+2. Notify team in next sync point
+3. Document decision in task comments
+4. Escalate if blocking multiple agents
 
 ---
 
