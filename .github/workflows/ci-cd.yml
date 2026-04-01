@@ -1,0 +1,229 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: "3.11"
+  XCODE_VERSION: "15.0"
+
+jobs:
+  # Backend Tests
+  backend-tests:
+    runs-on: ubuntu-latest
+    name: Backend Tests
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      working-directory: ./functions
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Lint with pylint
+      working-directory: ./functions
+      run: |
+        pip install pylint
+        pylint scrapers/ cache/ models/ utils/ --disable=all --enable=E,F || true
+    
+    - name: Run tests
+      working-directory: ./functions
+      run: |
+        pip install pytest pytest-cov
+        pytest tests/ -v --cov=. --cov-report=xml
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./functions/coverage.xml
+        flags: backend
+        name: backend-coverage
+
+  # Backend Build & Deploy
+  backend-deploy:
+    runs-on: ubuntu-latest
+    name: Backend Deploy
+    needs: backend-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        export_default_credentials: true
+    
+    - name: Deploy to Firebase
+      working-directory: ./functions
+      run: |
+        pip install firebase-admin
+        firebase deploy --only functions:search_prices --project=${{ secrets.GCP_PROJECT_ID }}
+      env:
+        FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+
+  # iOS Build
+  ios-build:
+    runs-on: macos-latest
+    name: iOS Build & Test
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: ${{ env.XCODE_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        cd Glimpse
+        pod install --repo-update
+    
+    - name: Build
+      run: |
+        cd Glimpse
+        xcodebuild \
+          -workspace Glimpse.xcworkspace \
+          -scheme Glimpse \
+          -configuration Debug \
+          -derivedDataPath build \
+          -verbose
+    
+    - name: Run tests
+      run: |
+        cd Glimpse
+        xcodebuild \
+          -workspace Glimpse.xcworkspace \
+          -scheme Glimpse \
+          -configuration Debug \
+          -derivedDataPath build \
+          -enableCodeCoverage YES \
+          test
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        flags: ios
+        name: ios-coverage
+
+  # Linting & Code Quality
+  code-quality:
+    runs-on: ubuntu-latest
+    name: Code Quality Checks
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Run black (formatter)
+      run: |
+        pip install black
+        black --check functions/ || true
+    
+    - name: Run isort (import sorter)
+      run: |
+        pip install isort
+        isort --check-only functions/ || true
+    
+    - name: Run flake8 (linter)
+      run: |
+        pip install flake8
+        flake8 functions/ --max-line-length=100 || true
+
+  # Security Scan
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Scan
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Run Bandit
+      run: |
+        pip install bandit
+        bandit -r functions/ -f json -o bandit-report.json || true
+    
+    - name: Run OWASP Dependency Check
+      run: |
+        pip install safety
+        safety check --json || true
+
+  # Documentation Check
+  docs-check:
+    runs-on: ubuntu-latest
+    name: Documentation Check
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check if docs are updated
+      run: |
+        if git diff main HEAD --name-only | grep -q "\.md$"; then
+          echo "✅ Docs updated"
+        else
+          echo "⚠️  No documentation updates"
+        fi
+
+  # Final Status
+  all-checks:
+    runs-on: ubuntu-latest
+    name: All Checks Summary
+    needs: [backend-tests, ios-build, code-quality, security-scan]
+    if: always()
+    
+    steps:
+    - name: Check all jobs
+      run: |
+        if [ "${{ needs.backend-tests.result }}" = "failure" ] || \
+           [ "${{ needs.ios-build.result }}" = "failure" ] || \
+           [ "${{ needs.code-quality.result }}" = "failure" ]; then
+          echo "❌ Some checks failed"
+          exit 1
+        fi
+        echo "✅ All checks passed"
+
+  # Notification (optional)
+  notify:
+    runs-on: ubuntu-latest
+    name: Notify
+    needs: all-checks
+    if: always()
+    
+    steps:
+    - name: Slack notification
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: |
+          {
+            "text": "GLIMPSE CI/CD Pipeline ${{ needs.all-checks.result }}",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*GLIMPSE CI/CD*\nStatus: ${{ needs.all-checks.result }}\nCommit: ${{ github.sha }}\nBranch: ${{ github.ref }}"
+                }
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: always() && secrets.SLACK_WEBHOOK_URL != ''

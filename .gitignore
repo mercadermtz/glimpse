@@ -1,0 +1,125 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+*~
+
+# Xcode
+build/
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.xcworkspace/
+xcuserdata/
+*.xcworkspace
+DerivedData/
+*.ipa
+*.app
+*.app.dSYM.zip
+*.dSYM.zip
+*.xcarchive
+.swiftpm/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Carthage
+Carthage/Build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Firebase
+google-services.json
+GoogleService-Info.plist
+.firebaserc
+firebase-debug.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p8
+service-account-key.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vs/
+
+# Node (if using node tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build artifacts
+dist/
+build/
+*.o
+*.a
+*.dylib
+*.dll
+*.exe
+
+# OS temp files
+Thumbs.db
+.trash
+.Spotlight-V100
+.TemporaryItems
+
+# IDE temp files
+.DS_Store
+*.log
+*.swp
+
+# Swift Package Manager
+.build/
+.swiftpm
+
+# Misc
+*.orig
+*.rej
+.vscode/settings.json
